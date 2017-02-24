@@ -5,3 +5,15 @@ based upon the work of Batiste Bieler (http://code.google.com/p/rte-light)
 js file is only 7kb uncompressed.
 
 Made new graphics - enjoy.
+
+-----------
+I needed to call functions from external javascript so added like
+      function formatText(command, option) {
+           .....
+        };
+
+        $.fn.rte.formatText = formatText;
+        
+ thus i could override the toolbar click function  for example <image>
+ but then need to do like...
+   myRte.rte.formatText('InsertImage', last_image);
