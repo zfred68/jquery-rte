@@ -1,42 +1,42 @@
 /*
-* jQuery RTE plugin 0.5.1 - create a rich text form for Mozilla, Opera, Safari and Internet Explorer
+* jQuery RTE plugin 0.5.2 - create a rich text form for Mozilla, Opera, Safari and Internet Explorer
 *
 * Copyright (c) 2009 Batiste Bieler
 * Distributed under the GPL Licenses.
-* Distributed under the The MIT License.
-
-* Copyright (c) 2009 Bernd Eickhoff
-* I have done slight changes to suit my particular needs.
-* Distributed under the authors original licenses.
+* Distributed under the MIT License.
 */
 
 // define the rte light plugin
 (function($) {
 
-    $.fn.rte = function(options) {
+if(typeof $.fn.rte === "undefined") {
 
-    $.fn.rte.html = function(iframe) {
-        return iframe.contentWindow.document.getElementsByTagName("body")[0].innerHTML;
-    };
-
-    $.fn.rte.defaults = {
-        media_url: "",
-        content_css_url: "rte.css",
+    var defaults = {
+        media_url: "js/rte",
+        content_css_url: "js/rte/rte.css",
         dot_net_button_class: null,
         max_height: 350
     };
 
-    // build main options before element iteration
-    var opts = $.extend($.fn.rte.defaults, options);
+    $.fn.rte = function(options) {
+
+     // build main options before element iteration
+    var opts = $.extend(defaults, options);
 
     // iterate and construct the RTEs
     return this.each( function() {
-
         var textarea = $(this);
         var iframe;
         var element_id = textarea.attr("id");
 
-        // enable design mode
+        $.fn.rte.html = function() {
+           return iframe.contentWindow.document.getElementsByTagName("body")[0].innerHTML;
+        };
+        $.fn.rte.sethtml = function(content) {
+           iframe.contentWindow.document.getElementsByTagName("body")[0].innerHTML=content;
+        };
+
+       // enable design mode
         function enableDesignMode() {
 
             var content = textarea.val();
@@ -48,6 +48,7 @@
 
             // already created? show/hide
             if(iframe) {
+                console.log("already created");
                 textarea.hide();
                 $(iframe).contents().find("body").html(content);
                 $(iframe).show();
@@ -58,16 +59,20 @@
 
             // for compatibility reasons, need to be created this way
             iframe = document.createElement("iframe");
-            iframe.frameBorder=0;
+            iframe.frameBorder=1;
             iframe.frameMargin=0;
             iframe.framePadding=0;
-            iframe.height=200;
+            iframe.height=260;
             if(textarea.attr('class'))
                 iframe.className = textarea.attr('class');
             if(textarea.attr('id'))
-                iframe.id = element_id;
+                iframe.id = element_id+'_iframe';
             if(textarea.attr('name'))
                 iframe.title = textarea.attr('name');
+            if(textarea.attr('width'))
+                iframe.width = textarea.attr('width');
+            if(textarea.attr('height'))
+                iframe.height = textarea.attr('height');
 
             textarea.after(iframe);
 
@@ -122,7 +127,7 @@
                 textarea.val(content);
             }
 
-            if(submit != true) {
+            if(submit !== true) {
                 textarea.show();
                 $(iframe).hide();
             }
@@ -130,25 +135,22 @@
 
         // create toolbar and bind events to it's elements
         function toolbar() {
-            var tb = $("<div class='rte-toolbar' id='toolbar-"+ element_id +"'><div>\
-                <p>\
-                    <select>\
+            var tb = $("<div class='rte-toolbar' id='toolbar-"+ element_id +"'>\
+					<div>\
+                    <select style='position:relative;top:-8px;background-color:#DBDBDB;'>\
                         <option value=''>Block style</option>\
                         <option value='p'>Paragraph</option>\
                         <option value='h3'>Title</option>\
                         <option value='address'>Address</option>\
                     </select>\
-                </p>\
-                <p>\
                     <a href='#' class='bold'><img src='"+opts.media_url+"bold.gif' alt='bold' /></a>\
-                    <a href='#' class='italic'><img src='"+opts.media_url+"italic.gif' alt='italic' /></a>&nbsp;\
+                    <a href='#' class='italic'><img src='"+opts.media_url+"italic.gif' alt='italic' /></a>\
                     <a href='#' class='unorderedlist'><img src='"+opts.media_url+"unordered.gif' alt='unordered list' /></a>\
                     <a href='#' class='orderedlist'><img src='"+opts.media_url+"ordered.gif' alt='unordered list' /></a>&nbsp;\
-                    <a href='#' class='link'><img src='"+opts.media_url+"link.gif' alt='link' /></a>\
-                    <a href='#' class='wiki'><img src='"+opts.media_url+"wiki.gif' alt='wiki link' /></a>&nbsp;\
-                    <a href='#' class='image'><img src='"+opts.media_url+"image.gif' alt='image' /></a>&nbsp;\
-                    <a href='#' class='disable'><img src='"+opts.media_url+"html.gif' alt='html mode' /></a>\
-                </p></div></div>");
+                    <a href='#' class='link'><img src='"+opts.media_url+"link.png' alt='link' /></a>\
+                    <a href='#' class='image'><img src='"+opts.media_url+"image.png' alt='image' /></a>\
+                    <a href='#' class='disable'><img src='"+opts.media_url+"close.gif' alt='close rte' /></a>\
+                </div></div>");
 
             $('select', tb).change(function(){
                 var index = this.selectedIndex;
@@ -162,24 +164,19 @@
             $('.unorderedlist', tb).click(function(){ formatText('insertunorderedlist');return false; });
             $('.orderedlist', tb).click(function(){ formatText('insertorderedlist');return false; });
             $('.link', tb).click(function(){
-               var p=prompt("URL:");
-               if(p)
-                   formatText('CreateLink', p);
-               return false; 
-						});
-            $('.wiki', tb).click(function(){
                 var p=prompt("URL:");
-                if(p) formatText('CreateLink', p);
-                return false; 
-						});
+                if(p)
+                    formatText('CreateLink', p);
+                return false; });
             $('.image', tb).click(function(){
                 var p=prompt("image URL:");
-                if(p) formatText('InsertImage', p);
-                return false; 
-						});
+                if(p)
+                    formatText('InsertImage', p);
+                return false; });
+
             $('.disable', tb).click(function() {
                 disableDesignMode();
-                var edm = $('<a class="rte-edm" href="#">design mode</a>');
+                var edm = $('<a class="rte-edm" href="#">Enable design mode</a>');
                 tb.empty().append(edm);
                 edm.click(function(e){
                     e.preventDefault();
@@ -227,6 +224,7 @@
             return tb;
         };
 
+
         function formatText(command, option) {
             iframe.contentWindow.focus();
             try{
@@ -236,6 +234,8 @@
             }
             iframe.contentWindow.focus();
         };
+
+        $.fn.rte.formatText = formatText;
 
         function setSelectedType(node, select) {
             while(node.parentNode) {
@@ -260,7 +260,7 @@
                 try {
                     node = range.parentElement();
                 }
-                catch (e) {
+      https://github.com/buntekuh/jquery-rte          catch (e) {
                     return false;
                 }
             } else {
@@ -281,7 +281,9 @@
         enableDesignMode();
 
     }); //return this.each
-    
-};// rte
+
+    }; // rte
+
+} // if
 
 })(jQuery);
