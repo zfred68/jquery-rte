@@ -17,3 +17,6 @@ I needed to call functions from external javascript so added like
  thus i could override the toolbar click function  for example <image>
  but then need to do like...
    myRte.rte.formatText('InsertImage', last_image);
+   
+ Is that the best way to externalise the jquery rte functions ?
+ 
